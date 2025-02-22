@@ -6,3 +6,5 @@ streamlit
 langchain_groq
 youtube_transcript_api
 validators==0.28.1
+edge-tts
+transformers

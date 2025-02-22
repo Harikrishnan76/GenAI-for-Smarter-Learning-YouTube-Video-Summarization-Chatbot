@@ -2,8 +2,12 @@ import streamlit as st
 import validators
 from langchain.chains.summarize import load_summarize_chain
 from langchain_groq import ChatGroq
+from youtube_transcript_api import YouTubeTranscriptApi
 from langchain_community.document_loaders import YoutubeLoader
 from langchain_core.prompts import PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
+import edge_tts
+from langchain_core.output_parsers import StrOutputParser
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -29,7 +33,11 @@ prompt=PromptTemplate(
 )
 prompt2=PromptTemplate(input_variables=['text'],
                        template=template2)
-llm=ChatGroq(model="gemma2-9b-it")
+llm=ChatGroq(model="mixtral-8x7b-32768")
+
+if 'response' not in st.session_state:
+     st.session_state.response=''
+
 if st.button("Summarize the URL"):
     if not url.strip():
         st.error("Please enter the  URL")
@@ -38,8 +46,23 @@ if st.button("Summarize the URL"):
     else:
         with st.spinner("Summarizing..."):
             if "youtube.com" in url:
-                    loader=YoutubeLoader.from_youtube_url(url)
-            documents=loader.load()
-            summarize_chain=load_summarize_chain(llm,chain_type="map_reduce",map_prompt=prompt,combine_prompt=prompt2)
-            response=summarize_chain.run(documents)
-            st.success(response)
+                    loader=YoutubeLoader.from_youtube_url(url,language=['en','hi','ta','te','es','ru','ja','de','ml'])
+                    documents=loader.load()
+                    summarize_chain=load_summarize_chain(llm,chain_type="map_reduce",map_prompt=prompt,combine_prompt=prompt2)
+                    st.session_state.response=summarize_chain.run(documents)
+
+st.success(st.session_state.response)
+st.subheader("What's your Question")
+
+question=st.text_input("",placeholder="Enter your Question")
+if question:
+    prompt3=ChatPromptTemplate.from_messages(
+            [
+                ('system', "Answer the user's question based on the provided summary. If the question is unrelated, answer it to the best of your ability."),
+                ('user', "Summary: {response}\nQuestion: {question}")
+            ]
+        )
+    parser=StrOutputParser()
+    chain=prompt3|llm|parser
+    answer=chain.invoke({'response':st.session_state.response,'question':question})
+    st.write(answer)
