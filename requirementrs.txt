@@ -1,0 +1,8 @@
+langchain
+langchain_community
+langchain_core
+python_dotenv
+streamlit
+langchain_groq
+youtube_transcript_api
+validators==0.28.1
