@@ -51,10 +51,10 @@ if st.button("Summarize the URL"):
                     summarize_chain=load_summarize_chain(llm,chain_type="map_reduce",map_prompt=prompt,combine_prompt=prompt2)
                     st.session_state.response=summarize_chain.run(documents)
 
-st.success(st.session_state.response)
+st.write(st.session_state.response)
 st.subheader("What's your Question")
 
-question=st.text_input("",placeholder="Enter your Question")
+question=st.text_input(label="",placeholder="Enter your Question")
 if question:
     prompt3=ChatPromptTemplate.from_messages(
             [
