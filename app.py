@@ -7,6 +7,7 @@ from langchain_community.document_loaders import YoutubeLoader
 from langchain_core.prompts import PromptTemplate
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+import speech_recognition as sr
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -54,6 +55,23 @@ st.write(st.session_state.response)
 st.subheader("What's your Question")
 
 question=st.text_input(label="",placeholder="Enter your Question")
+
+def voice_input():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        st.info("🎙 Listening...")
+        audio = recognizer.listen(source)
+        try:
+            return recognizer.recognize_google(audio)
+        except sr.UnknownValueError:
+            return "Could not recognize speech."
+        except sr.RequestError:
+            return "Error connecting to speech recognition service."
+
+if st.button("🎙 Use Voice for Question"):
+    question = voice_input()
+    st.write(question)
+    
 if question:
     prompt3=ChatPromptTemplate.from_messages(
             [
